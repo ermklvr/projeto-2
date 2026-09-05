@@ -1,34 +1,51 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum
-from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
+from sqlalchemy import String, Numeric, ForeignKey, Enum
+
+from sqlalchemy.orm import Mapped, relationship, mapped_column
+
 from .database import Base
+from decimal import Decimal
 
-class TipoMovimentacao(str, enum.Enum):
-    entrada = "entrada"
-    saida = "saida"
+import enum
 
-class Categoria(Base):
-    __tablename__ = "categorias"
-    id = Column(Integer, primary_key=True)
-    nome = Column(String, unique=True, nullable=False)
-    produtos = relationship("Produto", back_populates="categoria")
+from datetime import datetime
+from sqlalchemy import DateTime
 
-class Produto(Base):
+class MovementType(str, enum.Enum):
+    IN = "IN"
+    OUT = "OUT"
+
+class Product(Base):
     __tablename__ = "produtos"
-    id = Column(Integer, primary_key=True)
-    nome = Column(String, nullable=False)
-    preco = Column(Float, nullable=False)
-    quantidade_estoque = Column(Integer, default=0)
-    categoria_id = Column(Integer, ForeignKey("categorias.id"))
-    categoria = relationship("Categoria", back_populates="produtos")
-    movimentacoes = relationship("Movimentacao", back_populates="produto")
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name:  Mapped[str] = mapped_column(String(100), nullable=False)
+    price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
+    stock_quantity: Mapped[int] = mapped_column(nullable=False)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categorias.id"), nullable=False)
+    category: Mapped["Category"] = relationship(back_populates="products")
+    movements: Mapped[list["Movement"]] = relationship(back_populates="product")
+    
+    
+class Category(Base):
+    __tablename__ = "categorias"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name:  Mapped[str] = mapped_column(String(50), nullable=False)
+    products: Mapped[list["Product"]] = relationship(back_populates="category")
+    
 
-class Movimentacao(Base):
+class Movement(Base):
     __tablename__ = "movimentacoes"
-    id = Column(Integer, primary_key=True)
-    produto_id = Column(Integer, ForeignKey("produtos.id"))
-    tipo = Column(Enum(TipoMovimentacao), nullable=False)
-    quantidade = Column(Integer, nullable=False)
-    data = Column(DateTime, default=datetime.utcnow)
-    produto = relationship("Produto", back_populates="movimentacoes")
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("produtos.id"))
+    type: Mapped[MovementType] = mapped_column(Enum(MovementType), nullable=False)
+    quantity: Mapped[int] = mapped_column(nullable=False)
+    date: Mapped[datetime] = mapped_column(
+    DateTime,
+    default=datetime.utcnow,
+    nullable=False
+)
+    product: Mapped["Product"] = relationship(back_populates="movements")
+        
+

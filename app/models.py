@@ -18,10 +18,15 @@ class Product(Base):
     __tablename__ = "produtos"
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    
     name:  Mapped[str] = mapped_column(String(100), nullable=False)
+    
     price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
+    
     stock_quantity: Mapped[int] = mapped_column(nullable=False)
+    
     category_id: Mapped[int] = mapped_column(ForeignKey("categorias.id"), nullable=False)
+    #relações
     category: Mapped["Category"] = relationship(back_populates="products")
     movements: Mapped[list["Movement"]] = relationship(back_populates="product")
     

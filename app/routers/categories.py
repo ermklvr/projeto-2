@@ -5,7 +5,7 @@ from ..database import get_db
 from ..models import Category
 from ..schemas import CategoryCreate, CategoryResponse
 
-
+from .. import crud
 
 router = APIRouter(
     prefix="/categories",
@@ -19,15 +19,8 @@ def create_category(
     category: CategoryCreate,
     db: Session = Depends(get_db)
     ):
-    new_category = Category(
-        name = category.name
-    )
     
-    db.add(new_category)
-    db.commit()
-    db.refresh(new_category)
-    
-    return new_category
+    return crud.create_category(db,category)
 
 #READ
 @router.get("/",  response_model=list[CategoryResponse])

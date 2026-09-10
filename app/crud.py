@@ -1,4 +1,4 @@
-from .models import Category
+from .models import Category, Product
 
 
 
@@ -51,3 +51,67 @@ def delete_category(db,category_id):
     db.commit()
     
     return del_category
+
+
+
+
+
+#-----------PRODUCTS-----------
+#-----------CREATE ------------
+def new_product(db, product):
+    category = db.query(Category).filter(Category.id == product.category_id).first()
+    
+    if not category:
+        return None
+    
+    new_product = Product(
+        name = product.name,
+        price=product.price,
+        stock_quantity=product.stock_quantity,
+        category_id=product.category_id 
+        )
+    
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+        
+    return new_product
+#-----------READ------------
+#---- todos os produtos
+def get_products(db):
+    return db.query(Product).order_by(Product.id.asc()).all()
+
+#--- um unico produto
+def get_product_by_id(db,product_id):
+    return db.query(Product).filter(Product.id == product_id).first()
+#-----------UPDATE------------
+def update_product(db, product_id, product):
+    up_product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not up_product:
+        return None
+    
+    category = db.query(Category).filter(Category.id == product.category_id).first()
+
+    if not category:
+        return None
+
+    up_product.name = product.name
+    up_product.price = product.price
+    up_product.stock_quantity = product.stock_quantity
+    up_product.category_id = product.category_id
+    db.commit()
+    db.refresh(up_product)
+    return up_product
+   
+#-----------DELETE------------
+def delete_product(db,product_id):
+    deleted_product = db.query(Product).filter(Product.id == product_id).first()
+    
+    if not deleted_product:
+        return None
+    
+    db.delete(deleted_product)
+    db.commit()
+        
+    return deleted_product

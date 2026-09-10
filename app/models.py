@@ -26,6 +26,7 @@ class Product(Base):
     stock_quantity: Mapped[int] = mapped_column(nullable=False)
     
     category_id: Mapped[int] = mapped_column(ForeignKey("categorias.id"), nullable=False)
+    
     #relações
     category: Mapped["Category"] = relationship(back_populates="products")
     movements: Mapped[list["Movement"]] = relationship(back_populates="product")

@@ -65,4 +65,4 @@ def delete_category(
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    return {"message": "Category deleted sucessfully"}
+    return

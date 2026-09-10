@@ -14,7 +14,7 @@ class ProductCreate(BaseModel):
     )
     
     name: str = Field(min_length=1)
-    price: Decimal = Field(gt=0)
+    price: Decimal = Field(gt=0, max_digits=10,decimal_places=2)
     stock_quantity: int = Field(ge=0)
     category_id: int = Field(gt=0)
     

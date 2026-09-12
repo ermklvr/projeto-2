@@ -36,7 +36,9 @@ class Category(Base):
     __tablename__ = "categorias"
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    
     name:  Mapped[str] = mapped_column(String(50), nullable=False)
+    
     products: Mapped[list["Product"]] = relationship(back_populates="category")
     
 
@@ -44,9 +46,13 @@ class Movement(Base):
     __tablename__ = "movimentacoes"
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    
     product_id: Mapped[int] = mapped_column(ForeignKey("produtos.id"))
+    
     type: Mapped[MovementType] = mapped_column(Enum(MovementType), nullable=False)
+    
     quantity: Mapped[int] = mapped_column(nullable=False)
+    
     date: Mapped[datetime] = mapped_column(
     DateTime,
     default=datetime.utcnow,

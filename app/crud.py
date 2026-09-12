@@ -1,4 +1,4 @@
-from .models import Category, Product
+from .models import Category, Product, Movement, MovementType
 
 
 
@@ -115,3 +115,40 @@ def delete_product(db,product_id):
     db.commit()
         
     return deleted_product
+
+
+
+
+
+#-----------MOVEMENTS-----------
+#-----------CREATE ------------
+def create_movement(db, movement):
+    product = db.query(Product).filter(Product.id == movement.product_id).first()
+    
+    if not product:
+        return None
+    
+    if movement.type == MovementType.IN:
+        product.stock_quantity += movement.quantity
+    else: # aqui assume-se que as duas unicas entradas de type são in e out
+        if product.stock_quantity < movement.quantity:
+            return None
+         
+        product.stock_quantity -= movement.quantity
+        
+    new_movement = Movement (
+        product_id = movement.product_id,
+        type  =  movement.type,
+        quantity = movement.quantity   
+)
+    
+    db.add(new_movement)
+    db.commit()
+    db.refresh(new_movement)
+    
+    return new_movement
+        
+
+#-----------READ ------------
+#-----------UPDATE ------------
+#-----------DELETE ------------

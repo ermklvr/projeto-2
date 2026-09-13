@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Product,Category
 from ..schemas import ProductCreate, ProductResponse
 
-from decimal import Decimal
+from ..exceptions import ProductNotFoundError, CategoryNotFoundError
 
 from .. import crud
 
@@ -23,12 +23,13 @@ def new_product (
    product: ProductCreate,
    db: Session = Depends(get_db)
 ):
-    new_product = crud.new_product(db,product)
+    try:
+        return crud.new_product(db,product)
         
-    if not new_product:
+    except CategoryNotFoundError:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    return new_product
+   
 
 #READ
 @router.get("/" , response_model=list[ProductResponse])
@@ -49,27 +50,23 @@ def get_product_by_id (
 
 #UPDATE
 @router.put("/{product_id}", response_model=ProductResponse)
-def update_product (
-    product_id : int,
-    product : ProductCreate,
-    db: Session = Depends(get_db)
-):
-    updated_product = crud.update_product(db, product_id, product)
-    
-    if not updated_product:
-        raise HTTPException(status_code = 404, detail="Product not found")
-            
-    return updated_product
+def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.update_product(db,product_id,product)
+    except ProductNotFoundError:
+        raise HTTPException(status_code=404, detail="Product not found")
+    except CategoryNotFoundError:
+            raise HTTPException(status_code=404, detail="Category not found")
 
 #DELETE
-@router.delete("/{product_id}")
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db)                            
 ):
-   deleted_product = crud.delete_product(db,product_id)
+    try:
+        crud.delete_product(db,product_id)
    
-   if not deleted_product:
+    except ProductNotFoundError:
        raise HTTPException(status_code = 404, detail="Product not found")
-   
-   return {"message": "Product deleted successfully"}
+    return 

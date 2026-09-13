@@ -1,5 +1,7 @@
 from .models import Category, Product, Movement, MovementType
 
+from .exceptions import ProductNotFoundError, CategoryNotFoundError, InsufficientStockError, CategoryHasProductsError
+
 
 
 
@@ -31,7 +33,7 @@ def update_category(db, category_id,category):
     up_category = db.query(Category).filter(Category.id == category_id).first()
     
     if not up_category:
-        return None
+        raise CategoryNotFoundError()
     
     up_category.name  = category.name
     db.commit()
@@ -45,7 +47,10 @@ def delete_category(db,category_id):
     del_category = db.query(Category).filter(Category.id == category_id).first()
     
     if not del_category:
-            return None
+        raise CategoryNotFoundError()
+    
+    if del_category.products:         
+        raise CategoryHasProductsError()
     
     db.delete(del_category)
     db.commit()
@@ -62,20 +67,20 @@ def new_product(db, product):
     category = db.query(Category).filter(Category.id == product.category_id).first()
     
     if not category:
-        return None
+        raise CategoryNotFoundError()
     
-    new_product = Product(
+    created_product = Product(
         name = product.name,
         price=product.price,
         stock_quantity=product.stock_quantity,
         category_id=product.category_id 
         )
     
-    db.add(new_product)
+    db.add(created_product)
     db.commit()
-    db.refresh(new_product)
+    db.refresh(created_product)
         
-    return new_product
+    return created_product
 #-----------READ------------
 #---- todos os produtos
 def get_products(db):
@@ -85,16 +90,16 @@ def get_products(db):
 def get_product_by_id(db,product_id):
     return db.query(Product).filter(Product.id == product_id).first()
 #-----------UPDATE------------
-def update_product(db, product_id, product):
+def update_product(db, product_id, product): 
     up_product = db.query(Product).filter(Product.id == product_id).first()
 
     if not up_product:
-        return None
-    
+        raise ProductNotFoundError()
+
     category = db.query(Category).filter(Category.id == product.category_id).first()
 
     if not category:
-        return None
+        raise CategoryNotFoundError()
 
     up_product.name = product.name
     up_product.price = product.price
@@ -109,7 +114,7 @@ def delete_product(db,product_id):
     deleted_product = db.query(Product).filter(Product.id == product_id).first()
     
     if not deleted_product:
-        return None
+        raise ProductNotFoundError()
     
     db.delete(deleted_product)
     db.commit()
@@ -123,16 +128,16 @@ def delete_product(db,product_id):
 #-----------MOVEMENTS-----------
 #-----------CREATE ------------
 def create_movement(db, movement):
-    product = db.query(Product).filter(Product.id == movement.product_id).first()
+    product = db.query(Product).with_for_update().filter(Product.id == movement.product_id).first()
     
     if not product:
-        return None
+        raise ProductNotFoundError()
     
     if movement.type == MovementType.IN:
         product.stock_quantity += movement.quantity
     else: # aqui assume-se que as duas unicas entradas de type são in e out
         if product.stock_quantity < movement.quantity:
-            return None
+            raise InsufficientStockError()
          
         product.stock_quantity -= movement.quantity
         
@@ -150,5 +155,19 @@ def create_movement(db, movement):
         
 
 #-----------READ ------------
-#-----------UPDATE ------------
+def get_movements(db):
+    return db.query(Movement).order_by(Movement.id.asc()).all()
+
+def get_movement_by_id(db,movement_id):
+    return db.query(Movement).filter(Movement.id == movement_id).first()
 #-----------DELETE ------------
+def delete_movement(db,movement_id):
+    deleted_movement = db.query(Movement).filter(Movement.id == movement_id).first()
+    
+    if not deleted_movement:
+            raise ProductNotFoundError()
+        
+    db.delete(deleted_movement)
+    db.commit()
+            
+    return deleted_movement

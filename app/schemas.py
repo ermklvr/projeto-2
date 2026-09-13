@@ -46,7 +46,10 @@ class CategoryResponse(BaseModel):
     name: str 
     
 class MovementCreate(BaseModel):
-    
+    model_config = ConfigDict(
+    extra='forbid',
+    str_strip_whitespace=True
+)
     product_id: int = Field(gt=0)
     type: MovementType
     quantity: int = Field(gt=0)

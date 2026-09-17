@@ -9,3 +9,6 @@ class InsufficientStockError(Exception):
 
 class CategoryHasProductsError(Exception):
     pass
+
+class MovementNotFoundError(Exception):
+    pass

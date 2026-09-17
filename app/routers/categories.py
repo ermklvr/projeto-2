@@ -21,7 +21,7 @@ def create_category(
     ):
     try:
         return crud.create_category(db,category)
-    except Exception:
+    except:
         raise HTTPException(status_code=404, detail="Category not found")
 
 #READ

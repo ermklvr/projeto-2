@@ -47,7 +47,7 @@ class Movement(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     
-    product_id: Mapped[int] = mapped_column(ForeignKey("produtos.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("produtos.id"), nullable=False)
     
     type: Mapped[MovementType] = mapped_column(Enum(MovementType), nullable=False)
     

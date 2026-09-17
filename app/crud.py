@@ -1,11 +1,27 @@
 from .models import Category, Product, Movement, MovementType
 
-from .exceptions import ProductNotFoundError, CategoryNotFoundError, InsufficientStockError, CategoryHasProductsError
+from .exceptions import ProductNotFoundError, CategoryNotFoundError, InsufficientStockError, CategoryHasProductsError, MovementNotFoundError
 
 
 
 
 
+
+#------------REGRA DE ESTOQUE-------------
+def update_stock(movement,product,reverse=False):
+    quantity = movement.quantity
+    
+    if movement.type == MovementType.IN:
+        quantity = -quantity if reverse else quantity
+    
+    elif movement.type == MovementType.OUT:
+        quantity = quantity if reverse else -quantity
+        
+    if product.stock_quantity + quantity < 0:
+        raise InsufficientStockError()
+    
+    product.stock_quantity += quantity
+      
 #-----------CRUD--------------
 
 #-----------CATEGORY-----------
@@ -133,13 +149,7 @@ def create_movement(db, movement):
     if not product:
         raise ProductNotFoundError()
     
-    if movement.type == MovementType.IN:
-        product.stock_quantity += movement.quantity
-    else: # aqui assume-se que as duas unicas entradas de type são in e out
-        if product.stock_quantity < movement.quantity:
-            raise InsufficientStockError()
-         
-        product.stock_quantity -= movement.quantity
+    update_stock(movement,product)
         
     new_movement = Movement (
         product_id = movement.product_id,
@@ -165,7 +175,14 @@ def delete_movement(db,movement_id):
     deleted_movement = db.query(Movement).filter(Movement.id == movement_id).first()
     
     if not deleted_movement:
-            raise ProductNotFoundError()
+            raise MovementNotFoundError()
+    
+    product = db.query(Product).with_for_update().filter(Product.id == deleted_movement.product_id).first()
+        
+    if not product:
+        raise ProductNotFoundError()
+  
+    update_stock(deleted_movement,product, reverse=True)  
         
     db.delete(deleted_movement)
     db.commit()

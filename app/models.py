@@ -1,4 +1,4 @@
-from sqlalchemy import String, Numeric, ForeignKey, Enum
+from sqlalchemy import String, Numeric, ForeignKey, Enum, DateTime
 
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
@@ -8,7 +8,7 @@ from decimal import Decimal
 import enum
 
 from datetime import datetime
-from sqlalchemy import DateTime
+
 
 class MovementType(str, enum.Enum):
     IN = "IN"

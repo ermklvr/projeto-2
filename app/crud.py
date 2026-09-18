@@ -144,27 +144,32 @@ def delete_product(db,product_id):
 #-----------MOVEMENTS-----------
 #-----------CREATE ------------
 def create_movement(db, movement):
-    product = db.query(Product).with_for_update().filter(Product.id == movement.product_id).first()
-    
-    if not product:
-        raise ProductNotFoundError()
-    
-    if not product.active:
-        raise ProductInactiveError()
-    
-    update_stock(movement,product)
-        
-    new_movement = Movement (
-        product_id = movement.product_id,
-        type  =  movement.type,
-        quantity = movement.quantity   
-)
-    
-    db.add(new_movement)
-    db.commit()
-    db.refresh(new_movement)
-    
-    return new_movement
+    try:
+        product = (db.query(Product).with_for_update().filter(Product.id == movement.product_id).first())
+
+        if not product:
+            raise ProductNotFoundError()
+
+        if not product.active:
+            raise ProductInactiveError()
+
+        update_stock(movement, product)
+
+        new_movement = Movement(
+            product_id=movement.product_id,
+            type=movement.type,
+            quantity=movement.quantity
+        )
+
+        db.add(new_movement)
+        db.commit()
+        db.refresh(new_movement)
+
+        return new_movement
+
+    except Exception:
+        db.rollback()
+        raise
         
 
 #-----------READ ------------
@@ -175,19 +180,23 @@ def get_movement_by_id(db,movement_id):
     return db.query(Movement).filter(Movement.id == movement_id).first()
 #-----------DELETE ------------
 def delete_movement(db,movement_id):
-    deleted_movement = db.query(Movement).filter(Movement.id == movement_id).first()
-    
-    if not deleted_movement:
-            raise MovementNotFoundError()
-    
-    product = db.query(Product).with_for_update().filter(Product.id == deleted_movement.product_id).first()
+    try:
+        deleted_movement = db.query(Movement).filter(Movement.id == movement_id).first()
         
-    if not product:
-        raise ProductNotFoundError()
-  
-    update_stock(deleted_movement,product, reverse=True)  
+        if not deleted_movement:
+                raise MovementNotFoundError()
         
-    db.delete(deleted_movement)
-    db.commit()
+        product = db.query(Product).with_for_update().filter(Product.id == deleted_movement.product_id).first()
             
-    return deleted_movement
+        if not product:
+            raise ProductNotFoundError()
+    
+        update_stock(deleted_movement,product, reverse=True)  
+            
+        db.delete(deleted_movement)
+        db.commit()
+                
+        return deleted_movement
+    except Exception:
+        db.rollback()
+        raise

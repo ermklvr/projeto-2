@@ -1,6 +1,6 @@
 from .models import Category, Product, Movement, MovementType
 
-from .exceptions import ProductNotFoundError, CategoryNotFoundError, InsufficientStockError, CategoryHasProductsError, MovementNotFoundError
+from .exceptions import *
 
 
 
@@ -100,11 +100,11 @@ def new_product(db, product):
 #-----------READ------------
 #---- todos os produtos
 def get_products(db):
-    return db.query(Product).order_by(Product.id.asc()).all()
+    return db.query(Product).filter(Product.active.is_(True)).order_by(Product.id.asc()).all()
 
 #--- um unico produto
 def get_product_by_id(db,product_id):
-    return db.query(Product).filter(Product.id == product_id).first()
+    return db.query(Product).filter(Product.id == product_id, Product.active.is_(True)).first()
 #-----------UPDATE------------
 def update_product(db, product_id, product): 
     up_product = db.query(Product).filter(Product.id == product_id).first()
@@ -132,7 +132,7 @@ def delete_product(db,product_id):
     if not deleted_product:
         raise ProductNotFoundError()
     
-    db.delete(deleted_product)
+    deleted_product.active = False
     db.commit()
         
     return deleted_product
@@ -148,6 +148,9 @@ def create_movement(db, movement):
     
     if not product:
         raise ProductNotFoundError()
+    
+    if not product.active:
+        raise ProductInactiveError()
     
     update_stock(movement,product)
         

@@ -12,3 +12,6 @@ class CategoryHasProductsError(Exception):
 
 class MovementNotFoundError(Exception):
     pass
+
+class ProductInactiveError(Exception):
+    pass

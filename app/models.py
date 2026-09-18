@@ -27,6 +27,8 @@ class Product(Base):
     
     category_id: Mapped[int] = mapped_column(ForeignKey("categorias.id"), nullable=False)
     
+    active: Mapped[bool] = mapped_column(default=True, nullable=False) #para soft delete
+    
     #relações
     category: Mapped["Category"] = relationship(back_populates="products")
     movements: Mapped[list["Movement"]] = relationship(back_populates="product")

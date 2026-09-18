@@ -19,10 +19,8 @@ def create_category(
     category: CategoryCreate,
     db: Session = Depends(get_db)
     ):
-    try:
-        return crud.create_category(db,category)
-    except:
-        raise HTTPException(status_code=404, detail="Category not found")
+    return crud.create_category(db,category)
+  
 
 #READ
 @router.get("/",  response_model=list[CategoryResponse])

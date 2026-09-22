@@ -15,7 +15,7 @@ os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 from app.database import Base, engine
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(autouse=True)
 def setup_test_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -38,3 +38,6 @@ def category_id():
     assert response.status_code == 200
 
     return response.json()["id"]
+
+
+

@@ -180,4 +180,100 @@ def test_movement_inactive_product(category_id):
     )
         assert movement_response.status_code == 409
 
-   
+def test_category_crud():
+    create_response = client.post(
+        "/categories",
+        json={
+            "name": "Categoria CRUD"
+        }
+    )
+
+    assert create_response.status_code == 200
+
+    category_id = create_response.json()["id"]
+
+    get_response = client.get(f"/categories/{category_id}")
+
+    assert get_response.status_code == 200
+    assert get_response.json()["name"] == "Categoria CRUD"
+
+    update_response = client.put(
+        f"/categories/{category_id}",
+        json={
+            "name": "Categoria Atualizada"
+        }
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["name"] == "Categoria Atualizada"
+
+    delete_response = client.delete(f"/categories/{category_id}")
+
+    assert delete_response.status_code == 204
+
+    get_response = client.get(f"/categories/{category_id}")
+
+    assert get_response.status_code == 404
+    
+def test_delete_movement_reverts_stock(category_id):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Produto Reversão",
+            "price": 100,
+            "stock_quantity": 10,
+            "category_id": category_id
+        }
+    )
+
+    assert product_response.status_code == 200
+
+    product_id = product_response.json()["id"]
+
+    movement_response = client.post(
+        "/movements/",
+        json={
+            "product_id": product_id,
+            "type": "IN",
+            "quantity": 5
+        }
+    )
+
+    assert movement_response.status_code == 200
+
+    movement_id = movement_response.json()["id"]
+
+    product_response = client.get(f"/products/{product_id}")
+
+    assert product_response.json()["stock_quantity"] == 15
+
+    delete_response = client.delete(
+        f"/movements/{movement_id}"
+    )
+
+    assert delete_response.status_code == 204
+
+    product_response = client.get(f"/products/{product_id}")
+
+    assert product_response.status_code == 200
+    assert product_response.json()["stock_quantity"] == 10
+    
+    
+def test_delete_category_with_product(category_id):
+    product_response = client.post(
+        "/products",
+        json={
+            "name": "Produto da Categoria",
+            "price": 100,
+            "stock_quantity": 10,
+            "category_id": category_id
+        }
+    )
+
+    assert product_response.status_code == 200
+
+    delete_response = client.delete(
+        f"/categories/{category_id}"
+    )
+
+    assert delete_response.status_code == 409

@@ -34,7 +34,7 @@ def create_movement(
         
     except InsufficientStockError:
         raise HTTPException(
-            status_code=400, 
+            status_code=409, 
             detail="Insufficient stock")
     except ProductInactiveError:
         raise HTTPException( 

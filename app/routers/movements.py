@@ -36,7 +36,7 @@ def create_movement(
         raise HTTPException(
             status_code=409, 
             detail="Insufficient stock")
-    except ProductInactiveError:
+    except ProductInactiveError: 
         raise HTTPException( 
             status_code=409,
             detail="Product is inactive")

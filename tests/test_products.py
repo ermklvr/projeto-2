@@ -4,20 +4,20 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_app_is_running():
+def test_app_is_running(category_id):
     response = client.get("/products")
     
     assert response.status_code == 200
     
     
-def test_create_product():
+def test_create_product(category_id):
     response = client.post(
         "/products",
         json={
             "name": "Produto Teste",
             "price": 10.50,
             "stock_quantity": 20,
-            "category_id": 1
+            "category_id": category_id
         }
     )
     
@@ -28,27 +28,27 @@ def test_create_product():
     
     
     
-def test_create_product_invalid_price():
+def test_create_product_invalid_price(category_id):
     response = client.post(
         "/products",
         json={
             "name": "Produto Teste",
             "price": -50,
             "stock_quantity": 20,
-            "category_id": 1
+            "category_id": category_id
             }
         )
     assert response.status_code == 422 
 
 
-def test_delete_product_soft_delete():
+def test_delete_product_soft_delete(category_id):
     create_response = client.post(
         "/products",
         json={
             "name": "Produto Soft Delete",
             "price": 50,
             "stock_quantity": 10,
-            "category_id": 1
+            "category_id": category_id
             }
     )
     
@@ -65,14 +65,14 @@ def test_delete_product_soft_delete():
     assert get_response.status_code == 404
     
     
-def test_movement_out_insufficient_stock():
+def test_movement_out_insufficient_stock(category_id):
     product_response = client.post(
             "/products",
             json={
                 "name": "Produto Estoque Insuficiente",
                 "price": 100,
                 "stock_quantity": 5,
-                "category_id": 1
+                "category_id": category_id
                 }
         )
     
@@ -94,14 +94,14 @@ def test_movement_out_insufficient_stock():
     assert product_response.json()["stock_quantity"] == 5
     
     
-def test_create_movement_in_updates_stock():
+def test_create_movement_in_updates_stock(category_id):
     product_response = client.post(
         "/products",
         json={
             "name": "Produto Movimento IN",
             "price": 100,
             "stock_quantity": 10,
-            "category_id": 1
+            "category_id": category_id
         }
     )
 
@@ -124,14 +124,14 @@ def test_create_movement_in_updates_stock():
     assert product_response.json()["stock_quantity"] == 15
     
     
-def test_create_movement_out_updates_stock():
+def test_create_movement_out_updates_stock(category_id):
     product_response = client.post(
         "/products",
         json={
             "name": "Produto Movimento OUT",
             "price": 100,
             "stock_quantity": 10,
-            "category_id": 1
+            "category_id": category_id
         }
     )
 
@@ -153,14 +153,14 @@ def test_create_movement_out_updates_stock():
     assert product_response.status_code == 200
     assert product_response.json()["stock_quantity"] == 6
     
-def test_movement_inactive_product():
+def test_movement_inactive_product(category_id):
         product_response = client.post(
             "/products",
             json={
                 "name": "Produto Inativo",
                 "price" : 100,
                 "stock_quantity" : 10,
-                "category_id" : 1
+                "category_id" : category_id
             }
         )
         
